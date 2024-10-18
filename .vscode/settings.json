@@ -4,6 +4,7 @@
         "*.v": "verilog",
         "fb.h": "c",
         "fb_ctrl.h": "c",
-        "mman.h": "c"
+        "mman.h": "c",
+        "common.h": "c"
     }
 }
