@@ -1,0 +1,39 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Iinc",
+      "-c",
+      "-o",
+      "obj/fb_ctrl.o",
+      "src/fb_ctrl.c"
+    ],
+    "directory": "/home/yifeianyi/Desktop/BookReader",
+    "file": "/home/yifeianyi/Desktop/BookReader/src/fb_ctrl.c",
+    "output": "/home/yifeianyi/Desktop/BookReader/obj/fb_ctrl.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Iinc",
+      "-c",
+      "-o",
+      "obj/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/yifeianyi/Desktop/BookReader",
+    "file": "/home/yifeianyi/Desktop/BookReader/src/main.c",
+    "output": "/home/yifeianyi/Desktop/BookReader/obj/main.o"
+  },
+  {
+    "configurations": [
+        {
+            "name": "Linux",
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
+        }
+    ],
+    "version": 4
+  }
+]
