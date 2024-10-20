@@ -23,4 +23,3 @@ int open_framebuffer(){
     }
     return fd_fb;
 }
-

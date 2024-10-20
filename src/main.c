@@ -4,11 +4,13 @@
 #include <sys/mman.h>
 #include<string.h>
 #include <unistd.h>
+#include "ascii.h"
 static int screen_size;
 static unsigned char *fb_base;
 static unsigned int line_width;
 static unsigned int pixel_width;
-int  map_framebuffer(fb_var_screeninfo var,int fd){
+fb_var_screeninfo var;
+int  map_framebuffer(int fd){
     line_width = var.xres * var.bits_per_pixel / 8;
     pixel_width = var.bits_per_pixel / 8;
     screen_size = var.xres * var.yres * var.bits_per_pixel / 8;
@@ -20,10 +22,6 @@ int  map_framebuffer(fb_var_screeninfo var,int fd){
         return -1;
     }
 
-    // for(int i=0;i <= 0xff;i++){
-    //     sleep(1);
-    //     memset(fb_base, i, screen_size);
-    // }
 
 	
     return 0;
@@ -42,7 +40,12 @@ static void regroup_565(u_int16_t *red, u_int16_t *green, u_int16_t *blue, u_int
         green:  8b 
         blue:   8b
 */
-void lcd_put_pixel(fb_var_screeninfo var,int x, int y, u_int32_t color){
+enum{
+    BPP_8B  = 8,
+    BPP_16B = 16,
+    BPP_32B = 32,
+}BPP_BIT;
+void lcd_put_pixel(int x, int y, u_int32_t color){
     u_int8_t *pen_8  = fb_base + y*line_width + x*pixel_width;
     u_int16_t*pen_16 = (u_int16_t*)pen_8;
     u_int32_t*pen_32 = (u_int32_t*)pen_8;
@@ -72,28 +75,45 @@ void lcd_put_pixel(fb_var_screeninfo var,int x, int y, u_int32_t color){
     }
 }
 
+
+
+static void put_ascii(int x,int y,u_int8_t c){
+    u_int8_t *dots = (u_int8_t*) &fontdata_8x16[c*16];
+    u_int8_t byte;
+    for(int i=0;i<16;i++){
+        byte = dots[i];
+        for(int idx = 7;~idx;idx--){
+            if(byte & (1<< idx))lcd_put_pixel(x+7-idx,y+i,0xffffff);
+            else lcd_put_pixel(x+7-idx,y+i,0);
+        }
+    }
+}
+void printf_ascii(char *str){
+    char buffer[1024];
+    sprintf(buffer,"%s",str);
+    static int x = 0;
+    static int y = -16;
+    y+=16;
+    x = 0;
+    int len = strlen(buffer);
+    for(int i=0;i<len;i++,x+=8){
+        put_ascii(x,y,str[i]);
+    }   
+}
 int main(){
     int fd_fb = open_framebuffer();
-    fb_var_screeninfo var = print_lcd_info(fd_fb);
-    map_framebuffer(var,fd_fb);
+    var = print_lcd_info(fd_fb);
+    map_framebuffer(fd_fb);
 
-    memset(fb_base, 0xff, screen_size);
-    for (int i = 0; i < 100; i++){
-        lcd_put_pixel(var,var.xres/2+i, var.yres/2, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2, var.yres/2+i, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2-i, var.yres/2, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2, var.yres/2-i, 0xFF0000);
-
-        lcd_put_pixel(var,var.xres/2+i, var.yres/2+i, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2-i, var.yres/2+i, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2-i, var.yres/2-i, 0xFF0000);
-        lcd_put_pixel(var,var.xres/2+i, var.yres/2-i, 0xFF0000);
-        // sleep(1);
-        // memset(fb_base, i, screen_size);
-    }
-
-    while(1)
-
+    memset(fb_base, 0x00, screen_size);
+    // for (int i = 0; i < 10; i++){
+        
+    // }
+    // put_ascii(30,20,'a');
+    printf_ascii("abdcdeg");
+    printf_ascii("ABCDEFG");
+    
+    while(1);
     close(fd_fb);
     return 0;
 }

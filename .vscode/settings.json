@@ -5,6 +5,7 @@
         "fb.h": "c",
         "fb_ctrl.h": "c",
         "mman.h": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "ascii.h": "c"
     }
 }
