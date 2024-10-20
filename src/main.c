@@ -5,6 +5,7 @@
 #include<string.h>
 #include <unistd.h>
 #include "ascii.h"
+#include <errno.h>
 static int screen_size;
 static unsigned char *fb_base;
 static unsigned int line_width;
@@ -21,9 +22,6 @@ int  map_framebuffer(int fd){
         printf("can't mmap\n");
         return -1;
     }
-
-
-	
     return 0;
 }
 
@@ -35,7 +33,7 @@ static void regroup_565(u_int16_t *red, u_int16_t *green, u_int16_t *blue, u_int
 }
 /* 
     color: 
-        é€æ˜åº¦:  8b  
+        Í¸Ã÷¶È:  8b  
         red:    8b 
         green:  8b 
         blue:   8b
@@ -100,19 +98,82 @@ void printf_ascii(char *str){
         put_ascii(x,y,str[i]);
     }   
 }
+int fd_hzk16;
+struct stat hzk_stat;
+unsigned char *hzkmem;
+
+int open_HZK16(){
+    int fd = open("src/HZK16", O_RDONLY);
+	if (fd < 0)
+	{
+		printf("can't open HZK16\n");
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd));
+        printf("pwd: %s\n",cwd);
+		return -1;
+	}
+    else printf("Open HZK16 finished.\n");
+    
+	if(fstat(fd, &hzk_stat))
+	{
+		printf("can't get fstat\n");
+		return -1;
+	}
+    else printf("Get HZK16 fstat finished.\n");
+    printf("\n");
+    return fd;
+}
+
+int map_hzk16(int fd){
+    hzkmem = (unsigned char *)mmap(NULL , hzk_stat.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	if (hzkmem == MAP_FAILED)
+	{
+		fprintf(stderr, "mmap failed: %s\n", strerror(errno));
+        close(fd_hzk16);
+		return -1;
+	}
+    return 0;
+}
+
+//16*16µãÕó
+void put_hzk16(int x, int y, u_int8_t *str){
+    u_int8_t area = str[0] - 0xA1;
+    u_int8_t offset = str[1] - 0xA1;
+    u_int8_t *base = hzkmem + (area *94 + offset) *32;
+
+    for(int i=0;i<16;i++){
+        for(int j=0;j<2;j++){
+            u_int8_t byte = base[i*2 + j];
+            for(int b=7; ~b; b--){
+                u_int32_t color = ((byte >> b) & 1)? 0xffffff : 0;
+                lcd_put_pixel(x + j*8 + 7 - b, y+i, color);
+            }
+        }
+    }
+}
 int main(){
     int fd_fb = open_framebuffer();
     var = print_lcd_info(fd_fb);
     map_framebuffer(fd_fb);
-
+    printf("\n");
+//============================================================
     memset(fb_base, 0x00, screen_size);
-    // for (int i = 0; i < 10; i++){
-        
-    // }
-    // put_ascii(30,20,'a');
+
+//================´òÓ¡ ASCII µãÕó==============================
     printf_ascii("abdcdeg");
     printf_ascii("ABCDEFG");
+
+//================ HZK16 ======================================
+    fd_hzk16 = open_HZK16();
     
+
+    map_hzk16(fd_hzk16);
+    
+
+    unsigned char str[] = "ÖĞ";
+    printf("GBK2312 code: %02x %02x\n",str[0],str[1]);
+    put_hzk16(var.xres/2,var.yres/2,str);
+
     while(1);
     close(fd_fb);
     return 0;
