@@ -4805,10 +4805,10 @@ int main(int argc, char **argv)
 	/* 清屏: 全部设为黑色 */
 	memset(fbmem, 0, screen_size);
 
-    lcd_put_ascii(var.xres/2, var.yres/2, 'A'); /*在屏幕中间显示8*16的字母A*/
+    // lcd_put_ascii(var.xres/2, var.yres/2, 'A'); /*在屏幕中间显示8*16的字母A*/
 	
 	printf("chinese code: %02x %02x\n", str[0], str[1]);
-	lcd_put_chinese(var.xres/2 + 8,  var.yres/2, str);
+	lcd_put_chinese(var.xres/2 + 8 ,  var.yres/2, str);
 
 	munmap(fbmem , screen_size);
 	close(fd_fb);

@@ -40,5 +40,5 @@ clean:
 # Phony targets
 .PHONY: all clean run
 
-run:
+run:$(TARGET)
 	$(TARGET)
